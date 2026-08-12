@@ -1,10 +1,9 @@
+import { RouterProvider } from 'react-router-dom'
+
+import { router } from './router'
+
 function App() {
-  return (
-    <main>
-      <h1>Educador Financeiro Inteligente</h1>
-      <p>Organize suas finanças com o apoio da Inteligência Artificial.</p>
-    </main>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App
