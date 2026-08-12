@@ -1,16 +1,45 @@
 import ReactMarkdown from 'react-markdown'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
+import { Button } from '../components/Button'
 import { buildFinancialPrompt } from '../services/ai/buildFinancialPrompt'
 import { generateFinancialAnalysis } from '../services/ai/gemini'
 import type { Simulation } from '../types/Simulation'
 
+const analysisRequests = new Map<string, Promise<string>>()
+
+function requestFinancialAnalysis(
+  simulation: Simulation,
+) {
+  const existingRequest = analysisRequests.get(simulation.id)
+
+  if (existingRequest) {
+    return existingRequest
+  }
+
+  const prompt = buildFinancialPrompt(simulation)
+
+  const request = generateFinancialAnalysis(prompt).finally(() => {
+    analysisRequests.delete(simulation.id)
+  })
+
+  analysisRequests.set(simulation.id, request)
+
+  return request
+}
+
+function getStoredSimulations(): Simulation[] {
+  return JSON.parse(
+    localStorage.getItem('finora-simulations') ?? '[]',
+  )
+}
+
 export function SimulationResultPage() {
   const { id } = useParams()
 
-  const simulations: Simulation[] = JSON.parse(
-    localStorage.getItem('finora-simulations') ?? '[]',
+  const [simulations, setSimulations] = useState<Simulation[]>(
+    getStoredSimulations,
   )
 
   const simulation = simulations.find(
@@ -24,7 +53,7 @@ export function SimulationResultPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
+  const generateAnalysis = useCallback(async () => {
     if (!simulation) {
       return
     }
@@ -34,24 +63,16 @@ export function SimulationResultPage() {
       return
     }
 
-    let cancelled = false
+    try {
+      setIsLoading(true)
+      setError('')
 
-    async function generateAnalysis() {
-      try {
-        setIsLoading(true)
-        setError('')
+      const result = await requestFinancialAnalysis(simulation)
 
-        const prompt = buildFinancialPrompt(simulation)
+      setAnalysis(result)
 
-        const result = await generateFinancialAnalysis(prompt)
-
-        if (cancelled) {
-          return
-        }
-
-        setAnalysis(result)
-
-        const updatedSimulations = simulations.map((item) =>
+      setSimulations((currentSimulations) => {
+        const updatedSimulations = currentSimulations.map((item) =>
           item.id === simulation.id
             ? {
                 ...item,
@@ -64,29 +85,23 @@ export function SimulationResultPage() {
           'finora-simulations',
           JSON.stringify(updatedSimulations),
         )
-      } catch (error) {
-        if (cancelled) {
-          return
-        }
 
-        console.error(error)
+        return updatedSimulations
+      })
+    } catch (error) {
+      console.error(error)
 
-        setError(
-          'Não foi possível gerar a análise financeira neste momento.',
-        )
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
+      setError(
+        'Não foi possível gerar a análise financeira. Verifique sua conexão e tente novamente.',
+      )
+    } finally {
+      setIsLoading(false)
     }
+  }, [simulation])
 
+  useEffect(() => {
     generateAnalysis()
-
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+  }, [generateAnalysis])
 
   if (!simulation) {
     return (
@@ -175,15 +190,40 @@ export function SimulationResultPage() {
 
         <div className="mt-5 rounded-xl border border-border bg-card p-6">
           {isLoading && (
-            <p className="text-muted-foreground">
-              Analisando suas informações financeiras...
-            </p>
+            <div className="space-y-4">
+              <div className="h-5 w-2/3 animate-pulse rounded bg-skeleton-base" />
+
+              <div className="h-4 w-full animate-pulse rounded bg-skeleton-base" />
+
+              <div className="h-4 w-5/6 animate-pulse rounded bg-skeleton-base" />
+
+              <div className="h-4 w-4/6 animate-pulse rounded bg-skeleton-base" />
+
+              <p className="pt-2 text-sm text-muted-foreground">
+                A Finora está analisando suas informações financeiras...
+              </p>
+            </div>
           )}
 
-          {error && (
-            <p className="text-sm text-red-500">
-              {error}
-            </p>
+          {!isLoading && error && (
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Não conseguimos gerar sua análise
+              </h3>
+
+              <p className="mt-2 text-sm text-red-500">
+                {error}
+              </p>
+
+              <div className="mt-5">
+                <Button
+                  type="button"
+                  onClick={generateAnalysis}
+                >
+                  Tentar novamente
+                </Button>
+              </div>
+            </div>
           )}
 
           {!isLoading && !error && analysis && (
