@@ -9,4 +9,5 @@ export interface SimulationData {
 export interface Simulation extends SimulationData {
   id: string
   createdAt: string
+  analysis?: string
 }
