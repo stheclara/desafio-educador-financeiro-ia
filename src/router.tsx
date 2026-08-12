@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import { RootLayout } from './layouts/RootLayout'
 import { SimulationFormPage } from './pages/SimulationFormPage'
+import { SimulationHistoryPage } from './pages/SimulationHistoryPage'
 import { SimulationResultPage } from './pages/SimulationResultPage'
 
 export const router = createBrowserRouter([
@@ -11,6 +12,10 @@ export const router = createBrowserRouter([
       {
         path: '/',
         element: <SimulationFormPage />,
+      },
+      {
+        path: '/historico',
+        element: <SimulationHistoryPage />,
       },
       {
         path: '/resultado/:id',
