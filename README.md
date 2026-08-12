@@ -2,7 +2,7 @@
 
 Aplicação web de planejamento financeiro pessoal desenvolvida com React, TypeScript e Inteligência Artificial Generativa.
 
-O projeto está sendo construído como parte de um desafio prático da DIO, utilizando o projeto Planej.ai como base técnica e referência de implementação.
+O projeto está sendo construído como parte de um desafio prático da DIO, utilizando o projeto Planej.ai como base técnica e referência.
 
 A proposta é criar uma versão própria de um Educador Financeiro Inteligente, capaz de receber informações de uma simulação financeira e gerar análises, recomendações e próximos passos personalizados.
 
