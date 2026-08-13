@@ -20,12 +20,17 @@ const initialData: SimulationData = {
 
 export function SimulationFormPage() {
   const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState<SimulationData>(initialData)
+
+  const [formData, setFormData] =
+    useState<SimulationData>(initialData)
 
   const navigate = useNavigate()
 
   function handleNextStep() {
-    if (currentStep < TOTAL_STEPS) {
+    if (
+      currentStep < TOTAL_STEPS &&
+      isCurrentStepValid()
+    ) {
       setCurrentStep((step) => step + 1)
     }
   }
@@ -56,7 +61,47 @@ export function SimulationFormPage() {
     }))
   }
 
+  function currencyHasValue(value: string) {
+    const numericValue = value.replace(/\D/g, '')
+
+    return Number(numericValue) > 0
+  }
+
+  function isCurrentStepValid() {
+    switch (currentStep) {
+      case 1:
+        return currencyHasValue(
+          formData.monthlyIncome,
+        )
+
+      case 2:
+        return currencyHasValue(
+          formData.monthlyExpenses,
+        )
+
+      case 3:
+        return formData.currentSavings.trim() !== ''
+
+      case 4:
+        return (
+          formData.financialGoal.trim().length >= 3
+        )
+
+      case 5:
+        return currencyHasValue(
+          formData.goalAmount,
+        )
+
+      default:
+        return false
+    }
+  }
+
   function handleFinish() {
+    if (!isCurrentStepValid()) {
+      return
+    }
+
     const simulation = {
       ...formData,
       id: crypto.randomUUID(),
@@ -64,7 +109,9 @@ export function SimulationFormPage() {
     }
 
     const simulations = JSON.parse(
-      localStorage.getItem('finora-simulations') ?? '[]',
+      localStorage.getItem(
+        'finora-simulations',
+      ) ?? '[]',
     )
 
     simulations.push(simulation)
@@ -74,7 +121,9 @@ export function SimulationFormPage() {
       JSON.stringify(simulations),
     )
 
-    navigate(`/resultado/${simulation.id}`)
+    navigate(
+      `/resultado/${simulation.id}`,
+    )
   }
 
   function renderCurrentStep() {
@@ -83,13 +132,16 @@ export function SimulationFormPage() {
         return (
           <Input
             id="monthly-income"
-            label="Renda mensal"
+            label="Qual é a sua renda mensal?"
             type="text"
             inputMode="numeric"
             placeholder="R$ 0,00"
             value={formData.monthlyIncome}
             onChange={(event) =>
-              handleCurrencyChange('monthlyIncome', event.target.value)
+              handleCurrencyChange(
+                'monthlyIncome',
+                event.target.value,
+              )
             }
           />
         )
@@ -98,13 +150,16 @@ export function SimulationFormPage() {
         return (
           <Input
             id="monthly-expenses"
-            label="Gastos mensais"
+            label="Quanto você gasta por mês?"
             type="text"
             inputMode="numeric"
             placeholder="R$ 0,00"
             value={formData.monthlyExpenses}
             onChange={(event) =>
-              handleCurrencyChange('monthlyExpenses', event.target.value)
+              handleCurrencyChange(
+                'monthlyExpenses',
+                event.target.value,
+              )
             }
           />
         )
@@ -113,13 +168,16 @@ export function SimulationFormPage() {
         return (
           <Input
             id="current-savings"
-            label="Quanto você possui guardado?"
+            label="Quanto você já possui guardado?"
             type="text"
             inputMode="numeric"
             placeholder="R$ 0,00"
             value={formData.currentSavings}
             onChange={(event) =>
-              handleCurrencyChange('currentSavings', event.target.value)
+              handleCurrencyChange(
+                'currentSavings',
+                event.target.value,
+              )
             }
           />
         )
@@ -128,12 +186,15 @@ export function SimulationFormPage() {
         return (
           <Input
             id="financial-goal"
-            label="Qual é o seu objetivo financeiro?"
+            label="Qual é o seu principal objetivo financeiro?"
             type="text"
             placeholder="Ex.: montar uma reserva de emergência"
             value={formData.financialGoal}
             onChange={(event) =>
-              handleTextChange('financialGoal', event.target.value)
+              handleTextChange(
+                'financialGoal',
+                event.target.value,
+              )
             }
           />
         )
@@ -142,13 +203,16 @@ export function SimulationFormPage() {
         return (
           <Input
             id="goal-amount"
-            label="Quanto você precisa para atingir esse objetivo?"
+            label="Quanto você precisa para realizar esse objetivo?"
             type="text"
             inputMode="numeric"
             placeholder="R$ 0,00"
             value={formData.goalAmount}
             onChange={(event) =>
-              handleCurrencyChange('goalAmount', event.target.value)
+              handleCurrencyChange(
+                'goalAmount',
+                event.target.value,
+              )
             }
           />
         )
@@ -165,7 +229,9 @@ export function SimulationFormPage() {
       </h1>
 
       <p className="mt-2 text-sm text-muted-foreground">
-        Responda algumas questões para receber insights financeiros personalizados.
+        Responda algumas questões para
+        receber insights financeiros
+        personalizados.
       </p>
 
       <div className="mt-8">
@@ -195,6 +261,7 @@ export function SimulationFormPage() {
               <Button
                 type="button"
                 onClick={handleNextStep}
+                disabled={!isCurrentStepValid()}
               >
                 Continuar
               </Button>
@@ -202,6 +269,7 @@ export function SimulationFormPage() {
               <Button
                 type="button"
                 onClick={handleFinish}
+                disabled={!isCurrentStepValid()}
               >
                 Finalizar simulação
               </Button>
