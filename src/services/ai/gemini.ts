@@ -22,3 +22,14 @@ export async function generateFinancialAnalysis(
 
   return response.text ?? ''
 }
+
+export async function generateChatResponse(
+  prompt: string,
+) {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.6-flash',
+    contents: prompt,
+  })
+
+  return response.text ?? ''
+}
