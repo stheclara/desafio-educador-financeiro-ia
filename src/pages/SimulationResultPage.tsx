@@ -1,5 +1,5 @@
 import ReactMarkdown from 'react-markdown'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { Button } from '../components/Button'
@@ -12,54 +12,194 @@ const analysisRequests = new Map<string, Promise<string>>()
 function requestFinancialAnalysis(
   simulation: Simulation,
 ) {
-  const existingRequest = analysisRequests.get(simulation.id)
+  const existingRequest = analysisRequests.get(
+    simulation.id,
+  )
 
   if (existingRequest) {
     return existingRequest
   }
 
-  const prompt = buildFinancialPrompt(simulation)
+  const prompt =
+    buildFinancialPrompt(simulation)
 
-  const request = generateFinancialAnalysis(prompt).finally(() => {
-    analysisRequests.delete(simulation.id)
-  })
+  const request =
+    generateFinancialAnalysis(
+      prompt,
+    ).finally(() => {
+      analysisRequests.delete(
+        simulation.id,
+      )
+    })
 
-  analysisRequests.set(simulation.id, request)
+  analysisRequests.set(
+    simulation.id,
+    request,
+  )
 
   return request
 }
 
 function getStoredSimulations(): Simulation[] {
   return JSON.parse(
-    localStorage.getItem('finora-simulations') ?? '[]',
+    localStorage.getItem(
+      'finora-simulations',
+    ) ?? '[]',
   )
 }
 
 export function SimulationResultPage() {
   const { id } = useParams()
 
-  const [simulations, setSimulations] = useState<Simulation[]>(
-    getStoredSimulations,
-  )
+  const [simulations, setSimulations] =
+    useState<Simulation[]>(
+      getStoredSimulations,
+    )
 
   const simulation = simulations.find(
     (item) => item.id === id,
   )
 
-  const [analysis, setAnalysis] = useState(
-    simulation?.analysis ?? '',
-  )
+  const [analysis, setAnalysis] =
+    useState(
+      simulation?.analysis ?? '',
+    )
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] =
+    useState(
+      () =>
+        Boolean(
+          simulation &&
+            !simulation.analysis,
+        ),
+    )
 
-  const generateAnalysis = useCallback(async () => {
-    if (!simulation) {
+  const [error, setError] =
+    useState('')
+
+  function saveAnalysis(
+    simulationId: string,
+    result: string,
+  ) {
+    setAnalysis(result)
+
+    setSimulations(
+      (currentSimulations) => {
+        const updatedSimulations =
+          currentSimulations.map(
+            (item) =>
+              item.id ===
+              simulationId
+                ? {
+                    ...item,
+                    analysis:
+                      result,
+                  }
+                : item,
+          )
+
+        localStorage.setItem(
+          'finora-simulations',
+          JSON.stringify(
+            updatedSimulations,
+          ),
+        )
+
+        return updatedSimulations
+      },
+    )
+  }
+
+  /*
+   * Geração automática da análise.
+   *
+   * O primeiro setState acontece apenas
+   * DEPOIS da Promise ser resolvida.
+   *
+   * Isso evita o erro:
+   * react-hooks/set-state-in-effect
+   */
+  useEffect(() => {
+    if (
+      !simulation ||
+      simulation.analysis
+    ) {
       return
     }
 
-    if (simulation.analysis) {
-      setAnalysis(simulation.analysis)
+    let cancelled = false
+
+    const simulationId =
+      simulation.id
+
+    requestFinancialAnalysis(
+      simulation,
+    )
+      .then((result) => {
+        if (cancelled) {
+          return
+        }
+
+        setAnalysis(result)
+
+        setSimulations(
+          (currentSimulations) => {
+            const updatedSimulations =
+              currentSimulations.map(
+                (item) =>
+                  item.id ===
+                  simulationId
+                    ? {
+                        ...item,
+                        analysis:
+                          result,
+                      }
+                    : item,
+              )
+
+            localStorage.setItem(
+              'finora-simulations',
+              JSON.stringify(
+                updatedSimulations,
+              ),
+            )
+
+            return updatedSimulations
+          },
+        )
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return
+        }
+
+        console.error(error)
+
+        setError(
+          'Não foi possível gerar a análise financeira. Verifique sua conexão e tente novamente.',
+        )
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [simulation])
+
+  /*
+   * Tentativa manual.
+   *
+   * Aqui podemos usar setState antes
+   * da requisição porque esta função
+   * é chamada pelo clique do usuário,
+   * não por um useEffect.
+   */
+  async function handleRetry() {
+    if (!simulation) {
       return
     }
 
@@ -67,27 +207,15 @@ export function SimulationResultPage() {
       setIsLoading(true)
       setError('')
 
-      const result = await requestFinancialAnalysis(simulation)
-
-      setAnalysis(result)
-
-      setSimulations((currentSimulations) => {
-        const updatedSimulations = currentSimulations.map((item) =>
-          item.id === simulation.id
-            ? {
-                ...item,
-                analysis: result,
-              }
-            : item,
+      const result =
+        await requestFinancialAnalysis(
+          simulation,
         )
 
-        localStorage.setItem(
-          'finora-simulations',
-          JSON.stringify(updatedSimulations),
-        )
-
-        return updatedSimulations
-      })
+      saveAnalysis(
+        simulation.id,
+        result,
+      )
     } catch (error) {
       console.error(error)
 
@@ -97,11 +225,7 @@ export function SimulationResultPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [simulation])
-
-  useEffect(() => {
-    generateAnalysis()
-  }, [generateAnalysis])
+  }
 
   if (!simulation) {
     return (
@@ -111,7 +235,8 @@ export function SimulationResultPage() {
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Não foi possível encontrar os dados desta simulação.
+          Não foi possível encontrar
+          os dados desta simulação.
         </p>
       </main>
     )
@@ -124,7 +249,8 @@ export function SimulationResultPage() {
       </h1>
 
       <p className="mt-2 text-sm text-muted-foreground">
-        Confira abaixo as informações da sua simulação.
+        Confira abaixo as informações
+        da sua simulação.
       </p>
 
       <div className="mt-8 grid gap-4">
@@ -134,7 +260,9 @@ export function SimulationResultPage() {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-foreground">
-            {simulation.monthlyIncome}
+            {
+              simulation.monthlyIncome
+            }
           </p>
         </div>
 
@@ -144,7 +272,9 @@ export function SimulationResultPage() {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-foreground">
-            {simulation.monthlyExpenses}
+            {
+              simulation.monthlyExpenses
+            }
           </p>
         </div>
 
@@ -154,7 +284,9 @@ export function SimulationResultPage() {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-foreground">
-            {simulation.currentSavings}
+            {
+              simulation.currentSavings
+            }
           </p>
         </div>
 
@@ -164,7 +296,9 @@ export function SimulationResultPage() {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-foreground">
-            {simulation.financialGoal}
+            {
+              simulation.financialGoal
+            }
           </p>
         </div>
 
@@ -174,7 +308,9 @@ export function SimulationResultPage() {
           </p>
 
           <p className="mt-1 text-lg font-semibold text-foreground">
-            {simulation.goalAmount}
+            {
+              simulation.goalAmount
+            }
           </p>
         </div>
       </div>
@@ -185,7 +321,9 @@ export function SimulationResultPage() {
         </h2>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Orientações personalizadas geradas com Inteligência Artificial.
+          Orientações personalizadas
+          geradas com Inteligência
+          Artificial.
         </p>
 
         <div className="mt-5 rounded-xl border border-border bg-card p-6">
@@ -200,93 +338,118 @@ export function SimulationResultPage() {
               <div className="h-4 w-4/6 animate-pulse rounded bg-skeleton-base" />
 
               <p className="pt-2 text-sm text-muted-foreground">
-                A Finora está analisando suas informações financeiras...
+                A Finora está
+                analisando suas
+                informações
+                financeiras...
               </p>
             </div>
           )}
 
-          {!isLoading && error && (
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Não conseguimos gerar sua análise
-              </h3>
+          {!isLoading &&
+            error && (
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  Não conseguimos
+                  gerar sua análise
+                </h3>
 
-              <p className="mt-2 text-sm text-red-500">
-                {error}
-              </p>
+                <p className="mt-2 text-sm text-red-500">
+                  {error}
+                </p>
 
-              <div className="mt-5">
-                <Button
-                  type="button"
-                  onClick={generateAnalysis}
-                >
-                  Tentar novamente
-                </Button>
+                <div className="mt-5">
+                  <Button
+                    type="button"
+                    onClick={
+                      handleRetry
+                    }
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!isLoading && !error && analysis && (
-            <div className="text-foreground">
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => (
-                    <h1 className="mb-4 mt-6 text-3xl font-bold">
-                      {children}
-                    </h1>
-                  ),
+          {!isLoading &&
+            !error &&
+            analysis && (
+              <div className="text-foreground">
+                <ReactMarkdown
+                  components={{
+                    h1: ({
+                      children,
+                    }) => (
+                      <h1 className="mb-4 mt-6 text-3xl font-bold">
+                        {children}
+                      </h1>
+                    ),
 
-                  h2: ({ children }) => (
-                    <h2 className="mb-3 mt-6 text-2xl font-bold">
-                      {children}
-                    </h2>
-                  ),
+                    h2: ({
+                      children,
+                    }) => (
+                      <h2 className="mb-3 mt-6 text-2xl font-bold">
+                        {children}
+                      </h2>
+                    ),
 
-                  h3: ({ children }) => (
-                    <h3 className="mb-3 mt-6 text-xl font-semibold">
-                      {children}
-                    </h3>
-                  ),
+                    h3: ({
+                      children,
+                    }) => (
+                      <h3 className="mb-3 mt-6 text-xl font-semibold">
+                        {children}
+                      </h3>
+                    ),
 
-                  p: ({ children }) => (
-                    <p className="mb-4 leading-7">
-                      {children}
-                    </p>
-                  ),
+                    p: ({
+                      children,
+                    }) => (
+                      <p className="mb-4 leading-7">
+                        {children}
+                      </p>
+                    ),
 
-                  strong: ({ children }) => (
-                    <strong className="font-bold">
-                      {children}
-                    </strong>
-                  ),
+                    strong: ({
+                      children,
+                    }) => (
+                      <strong className="font-bold">
+                        {children}
+                      </strong>
+                    ),
 
-                  ul: ({ children }) => (
-                    <ul className="mb-4 ml-6 list-disc space-y-2">
-                      {children}
-                    </ul>
-                  ),
+                    ul: ({
+                      children,
+                    }) => (
+                      <ul className="mb-4 ml-6 list-disc space-y-2">
+                        {children}
+                      </ul>
+                    ),
 
-                  ol: ({ children }) => (
-                    <ol className="mb-4 ml-6 list-decimal space-y-2">
-                      {children}
-                    </ol>
-                  ),
+                    ol: ({
+                      children,
+                    }) => (
+                      <ol className="mb-4 ml-6 list-decimal space-y-2">
+                        {children}
+                      </ol>
+                    ),
 
-                  li: ({ children }) => (
-                    <li className="leading-7">
-                      {children}
-                    </li>
-                  ),
+                    li: ({
+                      children,
+                    }) => (
+                      <li className="leading-7">
+                        {children}
+                      </li>
+                    ),
 
-                  hr: () => (
-                    <hr className="my-6 border-border" />
-                  ),
-                }}
-              >
-                {analysis}
-              </ReactMarkdown>
-            </div>
-          )}
+                    hr: () => (
+                      <hr className="my-6 border-border" />
+                    ),
+                  }}
+                >
+                  {analysis}
+                </ReactMarkdown>
+              </div>
+            )}
         </div>
       </section>
     </main>

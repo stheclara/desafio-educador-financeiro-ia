@@ -1,7 +1,13 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ArrowLeft, Send } from 'lucide-react'
-import { useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { Button } from '../components/Button'
@@ -22,13 +28,27 @@ function currencyToNumber(value: string) {
   return Number(normalizedValue) || 0
 }
 
-function calculateEstimatedMonths(simulation: Simulation) {
-  const income = currencyToNumber(simulation.monthlyIncome)
-  const expenses = currencyToNumber(simulation.monthlyExpenses)
-  const savings = currencyToNumber(simulation.currentSavings)
-  const goalAmount = currencyToNumber(simulation.goalAmount)
+function calculateEstimatedMonths(
+  simulation: Simulation,
+) {
+  const income = currencyToNumber(
+    simulation.monthlyIncome,
+  )
+
+  const expenses = currencyToNumber(
+    simulation.monthlyExpenses,
+  )
+
+  const savings = currencyToNumber(
+    simulation.currentSavings,
+  )
+
+  const goalAmount = currencyToNumber(
+    simulation.goalAmount,
+  )
 
   const monthlySavings = income - expenses
+
   const remainingAmount = Math.max(
     goalAmount - savings,
     0,
@@ -55,49 +75,81 @@ function formatCurrency(value: number) {
 }
 
 const markdownComponents = {
-  h1: ({ children }: { children?: React.ReactNode }) => (
+  h1: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <h1 className="mb-4 mt-6 text-3xl font-bold">
       {children}
     </h1>
   ),
 
-  h2: ({ children }: { children?: React.ReactNode }) => (
+  h2: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <h2 className="mb-3 mt-6 text-2xl font-bold">
       {children}
     </h2>
   ),
 
-  h3: ({ children }: { children?: React.ReactNode }) => (
+  h3: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <h3 className="mb-3 mt-6 text-xl font-semibold">
       {children}
     </h3>
   ),
 
-  p: ({ children }: { children?: React.ReactNode }) => (
+  p: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <p className="mb-4 leading-7 last:mb-0">
       {children}
     </p>
   ),
 
-  strong: ({ children }: { children?: React.ReactNode }) => (
+  strong: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <strong className="font-bold">
       {children}
     </strong>
   ),
 
-  ul: ({ children }: { children?: React.ReactNode }) => (
+  ul: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <ul className="mb-4 ml-6 list-disc space-y-2">
       {children}
     </ul>
   ),
 
-  ol: ({ children }: { children?: React.ReactNode }) => (
+  ol: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <ol className="mb-4 ml-6 list-decimal space-y-2">
       {children}
     </ol>
   ),
 
-  li: ({ children }: { children?: React.ReactNode }) => (
+  li: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
     <li className="leading-7">
       {children}
     </li>
@@ -107,40 +159,75 @@ const markdownComponents = {
     <hr className="my-6 border-border" />
   ),
 
-  table: ({ children }: { children?: React.ReactNode }) => (
-    <div className="my-5 overflow-x-auto rounded-lg border border-border">
-      <table className="w-full border-collapse text-sm">
+  /*
+   * TABELAS RESPONSIVAS
+   *
+   * Desktop/tablet:
+   * mantém o formato tradicional de tabela.
+   *
+   * Mobile:
+   * cada linha vira um bloco vertical,
+   * evitando conteúdo cortado e evitando
+   * depender de rolagem horizontal.
+   */
+  table: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <div className="my-5 w-full">
+      <table className="block w-full text-sm sm:table sm:border-collapse sm:overflow-hidden sm:rounded-lg sm:border sm:border-border">
         {children}
       </table>
     </div>
   ),
 
-  thead: ({ children }: { children?: React.ReactNode }) => (
-    <thead className="bg-muted">
+  thead: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <thead className="hidden bg-muted sm:table-header-group">
       {children}
     </thead>
   ),
 
-  tbody: ({ children }: { children?: React.ReactNode }) => (
-    <tbody>
+  tbody: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <tbody className="block space-y-4 sm:table-row-group sm:space-y-0">
       {children}
     </tbody>
   ),
 
-  tr: ({ children }: { children?: React.ReactNode }) => (
-    <tr className="border-b border-border last:border-b-0">
+  tr: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <tr className="block overflow-hidden rounded-xl border border-border bg-background sm:table-row sm:rounded-none sm:border-0 sm:bg-transparent">
       {children}
     </tr>
   ),
 
-  th: ({ children }: { children?: React.ReactNode }) => (
-    <th className="border-r border-border px-4 py-3 text-left font-semibold last:border-r-0">
+  th: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <th className="hidden border-r border-border px-4 py-3 text-left font-semibold last:border-r-0 sm:table-cell">
       {children}
     </th>
   ),
 
-  td: ({ children }: { children?: React.ReactNode }) => (
-    <td className="border-r border-border px-4 py-3 align-top last:border-r-0">
+  td: ({
+    children,
+  }: {
+    children?: ReactNode
+  }) => (
+    <td className="block border-b border-border px-4 py-3 leading-6 last:border-b-0 sm:table-cell sm:border-b-0 sm:border-r sm:align-top sm:last:border-r-0">
       {children}
     </td>
   ),
@@ -158,13 +245,31 @@ export function SimulationHistoryDetailsPage() {
       ),
     )
 
-  const [question, setQuestion] = useState('')
-  const [isSending, setIsSending] = useState(false)
-  const [chatError, setChatError] = useState('')
+  const [question, setQuestion] =
+    useState('')
+
+  const [isSending, setIsSending] =
+    useState(false)
+
+  const [chatError, setChatError] =
+    useState('')
+
+  const chatEndRef =
+    useRef<HTMLDivElement>(null)
 
   const simulation = simulations.find(
     (item) => item.id === id,
   )
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    })
+  }, [
+    simulation?.chatHistory?.length,
+    isSending,
+  ])
 
   if (!simulation) {
     return (
@@ -182,27 +287,33 @@ export function SimulationHistoryDetailsPage() {
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Não foi possível encontrar os dados desta simulação.
+          Não foi possível encontrar os dados desta
+          simulação.
         </p>
       </main>
     )
   }
 
+  const currentSimulation = simulation
+
   const income = currencyToNumber(
-    simulation.monthlyIncome,
+    currentSimulation.monthlyIncome,
   )
 
   const expenses = currencyToNumber(
-    simulation.monthlyExpenses,
+    currentSimulation.monthlyExpenses,
   )
 
-  const monthlySavings = income - expenses
+  const monthlySavings =
+    income - expenses
 
   const estimatedMonths =
-    calculateEstimatedMonths(simulation)
+    calculateEstimatedMonths(
+      currentSimulation,
+    )
 
   const createdAt = new Date(
-    simulation.createdAt,
+    currentSimulation.createdAt,
   ).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -210,10 +321,11 @@ export function SimulationHistoryDetailsPage() {
   })
 
   const chatHistory =
-    simulation.chatHistory ?? []
+    currentSimulation.chatHistory ?? []
 
   async function handleSendQuestion() {
-    const trimmedQuestion = question.trim()
+    const trimmedQuestion =
+      question.trim()
 
     if (!trimmedQuestion || isSending) {
       return
@@ -233,7 +345,7 @@ export function SimulationHistoryDetailsPage() {
 
     const simulationsWithQuestion =
       simulations.map((item) =>
-        item.id === simulation.id
+        item.id === currentSimulation.id
           ? {
               ...item,
               chatHistory:
@@ -259,13 +371,15 @@ export function SimulationHistoryDetailsPage() {
 
     try {
       const prompt = buildChatPrompt(
-        simulation,
+        currentSimulation,
         trimmedQuestion,
         chatHistory,
       )
 
       const response =
-        await generateChatResponse(prompt)
+        await generateChatResponse(
+          prompt,
+        )
 
       if (!response.trim()) {
         throw new Error(
@@ -288,7 +402,8 @@ export function SimulationHistoryDetailsPage() {
       const updatedSimulations =
         simulationsWithQuestion.map(
           (item) =>
-            item.id === simulation.id
+            item.id ===
+            currentSimulation.id
               ? {
                   ...item,
                   chatHistory:
@@ -319,7 +434,7 @@ export function SimulationHistoryDetailsPage() {
   }
 
   function handleQuestionKeyDown(
-    event: React.KeyboardEvent<HTMLTextAreaElement>,
+    event: KeyboardEvent<HTMLTextAreaElement>,
   ) {
     if (
       event.key === 'Enter' &&
@@ -346,8 +461,8 @@ export function SimulationHistoryDetailsPage() {
           Simulação realizada em {createdAt}
         </p>
 
-        <h1 className="mt-2 text-3xl font-semibold text-foreground">
-          {simulation.financialGoal}
+        <h1 className="mt-2 break-words text-3xl font-semibold text-foreground">
+          {currentSimulation.financialGoal}
         </h1>
       </div>
 
@@ -362,8 +477,8 @@ export function SimulationHistoryDetailsPage() {
               Renda mensal
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              {simulation.monthlyIncome}
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
+              {currentSimulation.monthlyIncome}
             </p>
           </div>
 
@@ -372,8 +487,8 @@ export function SimulationHistoryDetailsPage() {
               Gastos mensais
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              {simulation.monthlyExpenses}
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
+              {currentSimulation.monthlyExpenses}
             </p>
           </div>
 
@@ -382,8 +497,8 @@ export function SimulationHistoryDetailsPage() {
               Reserva atual
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              {simulation.currentSavings}
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
+              {currentSimulation.currentSavings}
             </p>
           </div>
 
@@ -392,8 +507,8 @@ export function SimulationHistoryDetailsPage() {
               Custo da meta
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              {simulation.goalAmount}
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
+              {currentSimulation.goalAmount}
             </p>
           </div>
 
@@ -402,7 +517,7 @@ export function SimulationHistoryDetailsPage() {
               Economia mensal
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
               {monthlySavings > 0
                 ? formatCurrency(
                     monthlySavings,
@@ -416,7 +531,7 @@ export function SimulationHistoryDetailsPage() {
               Prazo estimado
             </p>
 
-            <p className="mt-1 text-lg font-semibold text-foreground">
+            <p className="mt-1 break-words text-lg font-semibold text-foreground">
               {estimatedMonths === null
                 ? 'Não calculável'
                 : estimatedMonths === 0
@@ -440,19 +555,22 @@ export function SimulationHistoryDetailsPage() {
           Insights gerados para esta simulação.
         </p>
 
-        <div className="mt-5 rounded-xl border border-border bg-card p-6">
-          {simulation.analysis ? (
-            <div className="text-foreground">
+        <div className="mt-5 min-w-0 rounded-xl border border-border bg-card p-4 sm:p-6">
+          {currentSimulation.analysis ? (
+            <div className="min-w-0 break-words text-foreground">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                components={markdownComponents}
+                components={
+                  markdownComponents
+                }
               >
-                {simulation.analysis}
+                {currentSimulation.analysis}
               </ReactMarkdown>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Esta simulação ainda não possui uma análise salva.
+              Esta simulação ainda não possui uma
+              análise salva.
             </p>
           )}
         </div>
@@ -464,61 +582,64 @@ export function SimulationHistoryDetailsPage() {
         </h2>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Faça perguntas sobre esta simulação e continue
-          seu planejamento financeiro.
+          Faça perguntas sobre esta simulação e
+          continue seu planejamento financeiro.
         </p>
 
-        <div className="mt-5 rounded-xl border border-border bg-card p-6">
+        <div className="mt-5 min-w-0 rounded-xl border border-border bg-card p-4 sm:p-6">
           {chatHistory.length === 0 ? (
             <div className="rounded-lg bg-primary/10 p-4">
               <p className="text-sm leading-6 text-foreground">
-                Você ainda não fez nenhuma pergunta sobre
-                esta simulação. Pergunte, por exemplo, como
-                alcançar sua meta mais rápido ou como uma
-                mudança nos gastos pode alterar o prazo.
+                Você ainda não fez nenhuma pergunta
+                sobre esta simulação. Pergunte, por
+                exemplo, como alcançar sua meta mais
+                rápido ou como uma mudança nos gastos
+                pode alterar o prazo.
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {chatHistory.map((message) => (
-                <div
-                  key={message.id}
-                  className={
-                    message.role === 'user'
-                      ? 'ml-auto max-w-2xl rounded-xl bg-primary px-5 py-4 text-primary-foreground'
-                      : 'mr-auto max-w-2xl rounded-xl border border-border bg-background px-5 py-4 text-foreground'
-                  }
-                >
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-70">
-                    {message.role === 'user'
-                      ? 'Você'
-                      : 'Finora'}
-                  </p>
-
-                  {message.role ===
-                  'assistant' ? (
-                    <ReactMarkdown
-                      remarkPlugins={[
-                        remarkGfm,
-                      ]}
-                      components={
-                        markdownComponents
-                      }
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  ) : (
-                    <p className="leading-7">
-                      {message.content}
+            <div className="min-w-0 space-y-6">
+              {chatHistory.map(
+                (message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.role === 'user'
+                        ? 'ml-auto w-full max-w-2xl break-words rounded-xl bg-primary px-4 py-4 text-primary-foreground sm:w-auto sm:px-5'
+                        : 'mr-auto w-full max-w-2xl break-words rounded-xl border border-border bg-background px-4 py-4 text-foreground sm:w-auto sm:px-5'
+                    }
+                  >
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-70">
+                      {message.role === 'user'
+                        ? 'Você'
+                        : 'Finora'}
                     </p>
-                  )}
-                </div>
-              ))}
+
+                    {message.role ===
+                    'assistant' ? (
+                      <ReactMarkdown
+                        remarkPlugins={[
+                          remarkGfm,
+                        ]}
+                        components={
+                          markdownComponents
+                        }
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="leading-7">
+                        {message.content}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
             </div>
           )}
 
           {isSending && (
-            <div className="mt-6 mr-auto max-w-2xl rounded-xl border border-border bg-background px-5 py-4">
+            <div className="mt-6 mr-auto w-full max-w-2xl rounded-xl border border-border bg-background px-4 py-4 sm:w-auto sm:px-5">
               <p className="text-sm font-medium text-foreground">
                 Finora
               </p>
@@ -539,6 +660,8 @@ export function SimulationHistoryDetailsPage() {
               </p>
             </div>
           )}
+
+          <div ref={chatEndRef} />
 
           <div className="mt-6 border-t border-border pt-6">
             <label
@@ -567,8 +690,8 @@ export function SimulationHistoryDetailsPage() {
 
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
-                Enter para enviar • Shift + Enter para
-                quebrar a linha
+                Enter para enviar • Shift + Enter
+                para quebrar a linha
               </p>
 
               <Button
