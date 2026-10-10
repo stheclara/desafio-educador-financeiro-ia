@@ -32,6 +32,17 @@ O projeto foi desenvolvido como parte de um desafio prático da **Digital Innova
 
 ---
 
+## Acesse o projeto
+
+A aplicação está publicada na Vercel:
+
+**Finora:**  
+https://finora-financas.vercel.app
+
+> A geração das análises e respostas utiliza a API do Google Gemini e pode estar sujeita à disponibilidade do serviço.
+
+---
+
 ## Funcionalidades
 
 - Formulário financeiro dividido em etapas
