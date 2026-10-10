@@ -1,4 +1,6 @@
 export interface SimulationData {
+  profession: string
+  hobbies: string
   monthlyIncome: string
   monthlyExpenses: string
   currentSavings: string

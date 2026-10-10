@@ -2,13 +2,11 @@
 
 ### Educador Financeiro Inteligente
 
-Aplicação web de planejamento financeiro que utiliza **Inteligência Artificial Generativa** para transformar dados financeiros em análises, orientações e conversas personalizadas.
+Aplicação web de planejamento financeiro que utiliza **Inteligência Artificial Generativa** para transformar informações pessoais e dados financeiros em análises, orientações e conversas personalizadas.
 
 <br>
 
 **React • TypeScript • Vite • Tailwind CSS • Google Gemini**
-
-</div>
 
 ---
 
@@ -16,17 +14,23 @@ Aplicação web de planejamento financeiro que utiliza **Inteligência Artificia
 
 A **Finora** é uma aplicação de planejamento financeiro pessoal criada para ajudar o usuário a compreender melhor sua situação financeira e visualizar caminhos para alcançar seus objetivos.
 
-A experiência começa com uma simulação simples, na qual o usuário informa dados como:
+A experiência começa com uma simulação em etapas, na qual o usuário informa dados sobre seu perfil e sua situação financeira:
 
+- profissão;
+- hobbies;
 - renda mensal;
 - gastos mensais;
 - reserva atual;
 - objetivo financeiro;
 - valor da meta.
 
-A partir dessas informações, a aplicação utiliza **Inteligência Artificial Generativa** para produzir uma análise financeira personalizada.
+A profissão e os hobbies ajudam a fornecer contexto adicional para a Inteligência Artificial, permitindo que as orientações sejam mais personalizadas quando essas informações forem relevantes.
 
-As simulações ficam armazenadas no histórico e podem ser consultadas posteriormente. Dentro dos detalhes de cada simulação, o usuário também pode continuar conversando com a **Finora**, fazendo novas perguntas relacionadas ao seu planejamento.
+A partir desses dados, a aplicação utiliza **Inteligência Artificial Generativa** para produzir uma análise financeira personalizada.
+
+Após receber a análise, o usuário pode conversar imediatamente com a **Finora** na própria página de resultado, fazendo novas perguntas sobre sua situação e seu planejamento financeiro.
+
+As simulações, análises e conversas ficam armazenadas no histórico e podem ser consultadas posteriormente. Ao acessar os detalhes de uma simulação, o usuário encontra novamente a análise e todo o histórico da conversa.
 
 O projeto foi desenvolvido como parte de um desafio prático da **Digital Innovation One (DIO)**, utilizando o projeto **Planej.ai** como base técnica e referência.
 
@@ -45,18 +49,23 @@ https://finora-financas.vercel.app
 
 ## Funcionalidades
 
-- Formulário financeiro dividido em etapas
+- Formulário dividido em etapas
+- Coleta de profissão e hobbies
+- Coleta de informações financeiras
 - Acompanhamento do progresso da simulação
 - Campos monetários formatados
 - Análise financeira utilizando IA Generativa
 - Recomendações personalizadas
+- Uso do perfil do usuário como contexto adicional para a IA
+- Chat com a Finora diretamente na página de resultado
+- Conversa contextual sobre a simulação
+- Manutenção do contexto durante a conversa
 - Histórico de simulações
 - Visualização dos detalhes de cada simulação
+- Recuperação do histórico da conversa
 - Exclusão de simulações do histórico
-- Conversa contextual com a Finora
-- Manutenção do contexto durante a conversa
 - Persistência das simulações e conversas no navegador
-- Feedback visual durante respostas da IA
+- Feedback visual durante análises e respostas da IA
 - Tratamento de erros
 - Tema claro e escuro
 - Layout responsivo para desktop e mobile
@@ -67,7 +76,25 @@ https://finora-financas.vercel.app
 
 ## Nova simulação
 
-A Finora conduz o usuário por um formulário em etapas para coletar as informações necessárias para o planejamento financeiro.
+A Finora conduz o usuário por um formulário em etapas para coletar informações pessoais e financeiras necessárias para gerar uma análise personalizada.
+
+O fluxo inclui:
+
+```text
+Profissão
+    ↓
+Hobbies
+    ↓
+Renda mensal
+    ↓
+Gastos mensais
+    ↓
+Reserva atual
+    ↓
+Objetivo financeiro
+    ↓
+Valor da meta
+```
 
 ### ☀️ Tema claro
 
@@ -81,9 +108,33 @@ A Finora conduz o usuário por um formulário em etapas para coletar as informa�
 
 ## Resultado da simulação
 
-Após concluir o formulário, os dados informados pelo usuário são organizados e utilizados como contexto para a geração da análise financeira.
+Após concluir o formulário, as informações fornecidas pelo usuário são organizadas e utilizadas como contexto para a geração da análise financeira.
+
+A página de resultado apresenta os dados da simulação, a análise produzida pela Finora e, logo abaixo, o espaço para continuar conversando com a Inteligência Artificial.
 
 ![Resultado da simulação](./docs/screenshots/resultado.png)
+
+<br>
+
+## Converse com a Finora
+
+Depois que a análise inicial é gerada, o usuário pode continuar a conversa com a Finora sem precisar acessar outra página.
+
+O chat aparece diretamente abaixo da análise financeira.
+
+A Finora utiliza como contexto:
+
+- profissão;
+- hobbies;
+- dados financeiros;
+- objetivo financeiro;
+- análise inicial;
+- histórico da conversa;
+- nova pergunta realizada pelo usuário.
+
+Dessa forma, o usuário pode tirar dúvidas e explorar diferentes possibilidades relacionadas ao planejamento apresentado.
+
+![Conversa com a Finora](./docs/screenshots/chat.png)
 
 <br>
 
@@ -99,25 +150,17 @@ O usuário também pode excluir uma simulação ou acessar seus detalhes.
 
 <br>
 
-## 🔎 Detalhes da simulação
+## Detalhes da simulação
 
-Ao selecionar **Ver detalhes**, o usuário pode acessar novamente a simulação escolhida, consultar sua análise e continuar o planejamento.
+Ao selecionar histórico e depois **Ver detalhes**, o usuário pode acessar novamente a simulação escolhida, consultar sua análise e visualizar o histórico da conversa realizada com a Finora.
+
+Também é possível continuar a conversa a partir dessa página.
 
 ![Detalhes da simulação](./docs/screenshots/detalhes.png)
 
 <br>
 
-## 💬 Converse com a Finora
-
-Além da análise inicial, o usuário pode continuar conversando com a Finora sobre a simulação realizada.
-
-A IA considera os dados financeiros e o contexto da conversa para gerar novas respostas.
-
-![Conversa com a Finora](./docs/screenshots/chat.png)
-
-<br>
-
-## 📱 Experiência mobile
+## Experiência mobile
 
 A aplicação também possui layout responsivo para dispositivos móveis.
 
@@ -135,7 +178,7 @@ A aplicação também possui layout responsivo para dispositivos móveis.
 
 ## Inteligência Artificial
 
-A Finora utiliza a **API do Google Gemini** para gerar orientações financeiras personalizadas a partir dos dados fornecidos pelo usuário.
+A Finora utiliza a **API do Google Gemini** para gerar orientações financeiras personalizadas a partir das informações fornecidas pelo usuário.
 
 A integração possui dois fluxos principais.
 
@@ -144,6 +187,9 @@ A integração possui dois fluxos principais.
 Depois que a simulação é concluída:
 
 ```text
+Perfil do usuário
+(profissão + hobbies)
+        +
 Dados financeiros
         ↓
 Construção do prompt
@@ -157,6 +203,8 @@ Resultado da simulação
 
 A análise pode considerar informações como:
 
+- profissão e contexto pessoal informado;
+- hobbies, quando forem relevantes para a orientação;
 - relação entre renda e gastos;
 - capacidade mensal de economia;
 - reserva financeira atual;
@@ -166,13 +214,19 @@ A análise pode considerar informações como:
 - sugestões de organização;
 - próximos passos.
 
+A profissão e os hobbies são utilizados apenas como contexto adicional. A Finora é orientada a não presumir salário, estabilidade profissional, rotina ou gastos apenas com base nessas informações.
+
+Os hobbies também não são tratados automaticamente como gastos desnecessários.
+
 ### Conversa contextual
 
-Após receber a análise inicial, o usuário pode continuar fazendo perguntas sobre aquela simulação.
+Após receber a análise inicial, o usuário pode continuar fazendo perguntas sobre aquela simulação diretamente na página de resultado.
 
 O contexto enviado para a IA considera:
 
 ```text
+Perfil do usuário
+        +
 Dados da simulação
         +
 Análise financeira
@@ -188,18 +242,24 @@ Resposta contextualizada
 
 Dessa forma, cada pergunta não é tratada como uma interação completamente isolada.
 
+A Finora consegue utilizar as informações da simulação e as mensagens anteriores para manter uma conversa mais coerente com o planejamento do usuário.
+
 ---
 
 ## Experiência de conversa
 
-O chat da Finora permite que o usuário continue explorando seu planejamento financeiro depois da análise inicial.
+O chat da Finora permite que o usuário continue explorando seu planejamento financeiro imediatamente após receber a análise inicial.
 
 Entre os recursos implementados estão:
 
+- chat diretamente na página de resultado;
 - múltiplas perguntas por simulação;
 - histórico de perguntas e respostas;
 - contexto financeiro da simulação;
+- contexto de profissão e hobbies;
+- uso da análise inicial como contexto;
 - persistência da conversa;
+- recuperação da conversa nos detalhes da simulação;
 - feedback enquanto a IA está respondendo;
 - tratamento de erros;
 - envio com `Enter`;
@@ -220,6 +280,8 @@ Simulação
 │
 ├── ID
 ├── Data de criação
+├── Profissão
+├── Hobbies
 ├── Renda mensal
 ├── Gastos mensais
 ├── Reserva atual
@@ -232,7 +294,9 @@ Simulação
     └── Respostas da Finora
 ```
 
-Isso permite que o usuário atualize a página ou volte posteriormente e continue acessando suas simulações no mesmo navegador.
+Isso permite que o usuário atualize a página ou volte posteriormente e continue acessando suas simulações e conversas no mesmo navegador.
+
+Simulações criadas antes da inclusão dos campos de profissão e hobbies continuam podendo ser acessadas, mesmo sem essas informações.
 
 ---
 
@@ -386,22 +450,27 @@ Foi implementado um histórico para permitir que o usuário:
 - consulte informações resumidas;
 - exclua uma simulação;
 - acesse os detalhes de uma simulação específica;
-- recupere a análise anteriormente gerada.
+- recupere a análise anteriormente gerada;
+- visualize as conversas realizadas com a Finora;
+- continue uma conversa anteriormente iniciada.
 
 ### Conversando com o Educador Financeiro
 
-A experiência foi expandida para permitir que o usuário continue conversando com a Finora depois da análise inicial.
+A experiência foi expandida para permitir que o usuário continue conversando com a Finora imediatamente depois da análise inicial.
 
 Foram implementados:
 
 - campo para novas perguntas;
 - respostas geradas por IA;
-- contexto da simulação;
+- contexto do perfil do usuário;
+- contexto financeiro da simulação;
+- análise inicial como parte do contexto;
 - histórico da conversa;
 - persistência no `localStorage`;
 - feedback de carregamento;
 - tratamento de erros;
-- múltiplas perguntas dentro da mesma simulação.
+- múltiplas perguntas dentro da mesma simulação;
+- acesso à mesma conversa pela página de detalhes.
 
 ---
 
@@ -426,7 +495,7 @@ Algumas melhorias que podem ser implementadas futuramente:
 
 Projeto desenvolvido como parte de um desafio prático da **Digital Innovation One (DIO)**.
 
-A solução utiliza o **Planej.ai** como base técnica e referência e expande a experiência com histórico de simulações, recuperação de análises e interação contextual com Inteligência Artificial.
+A solução utiliza o **Planej.ai** como base técnica e referência e expande a experiência com perfil personalizado, histórico de simulações, recuperação de análises e interação contextual com Inteligência Artificial.
 
 ---
 

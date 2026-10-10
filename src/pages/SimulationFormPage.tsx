@@ -8,9 +8,11 @@ import { ProgressBar } from '../components/ProgressBar'
 import type { SimulationData } from '../types/Simulation'
 import { formatCurrency } from '../utils/formatCurrency'
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 7
 
 const initialData: SimulationData = {
+  profession: '',
+  hobbies: '',
   monthlyIncome: '',
   monthlyExpenses: '',
   currentSavings: '',
@@ -70,24 +72,30 @@ export function SimulationFormPage() {
   function isCurrentStepValid() {
     switch (currentStep) {
       case 1:
+        return formData.profession.trim().length >= 2
+
+      case 2:
+        return formData.hobbies.trim().length >= 2
+
+      case 3:
         return currencyHasValue(
           formData.monthlyIncome,
         )
 
-      case 2:
+      case 4:
         return currencyHasValue(
           formData.monthlyExpenses,
         )
 
-      case 3:
+      case 5:
         return formData.currentSavings.trim() !== ''
 
-      case 4:
+      case 6:
         return (
           formData.financialGoal.trim().length >= 3
         )
 
-      case 5:
+      case 7:
         return currencyHasValue(
           formData.goalAmount,
         )
@@ -131,6 +139,40 @@ export function SimulationFormPage() {
       case 1:
         return (
           <Input
+            id="profession"
+            label="Qual é a sua profissão?"
+            type="text"
+            placeholder="Ex.: Designer, estudante, vendedora..."
+            value={formData.profession}
+            onChange={(event) =>
+              handleTextChange(
+                'profession',
+                event.target.value,
+              )
+            }
+          />
+        )
+
+      case 2:
+        return (
+          <Input
+            id="hobbies"
+            label="Quais são seus hobbies?"
+            type="text"
+            placeholder="Ex.: jogos, leitura, viagens... ou nenhum"
+            value={formData.hobbies}
+            onChange={(event) =>
+              handleTextChange(
+                'hobbies',
+                event.target.value,
+              )
+            }
+          />
+        )
+
+      case 3:
+        return (
+          <Input
             id="monthly-income"
             label="Qual é a sua renda mensal?"
             type="text"
@@ -146,7 +188,7 @@ export function SimulationFormPage() {
           />
         )
 
-      case 2:
+      case 4:
         return (
           <Input
             id="monthly-expenses"
@@ -164,7 +206,7 @@ export function SimulationFormPage() {
           />
         )
 
-      case 3:
+      case 5:
         return (
           <Input
             id="current-savings"
@@ -182,7 +224,7 @@ export function SimulationFormPage() {
           />
         )
 
-      case 4:
+      case 6:
         return (
           <Input
             id="financial-goal"
@@ -199,7 +241,7 @@ export function SimulationFormPage() {
           />
         )
 
-      case 5:
+      case 7:
         return (
           <Input
             id="goal-amount"
